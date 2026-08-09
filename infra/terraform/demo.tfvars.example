@@ -1,0 +1,29 @@
+# Tiny "learning" AKS profile — a single small node, sized to be as cheap as
+# possible for hands-on kubectl/Helm/KEDA/workload-identity practice rather than
+# to run the full embedding backfill. Copy to demo.tfvars (git-ignored) and fill
+# in, then:
+#
+#   terraform apply -var-file=demo.tfvars
+#
+# Cost control: this still bills while the cluster is *running*. When you're not
+# actively using it, deallocate the nodes so you pay only for disks (~$0 compute):
+#
+#   az aks stop  --name aks-booksearch-dev --resource-group rg-booksearch-dev
+#   az aks start --name aks-booksearch-dev --resource-group rg-booksearch-dev
+#
+# Note on Spot: the AKS *system* node pool cannot be Spot, so a single-node
+# cluster can't use Spot pricing without adding a second (user) pool — which
+# costs more, not less. For "very tiny", one regular B2s + `az aks stop` is the
+# cheapest path. The live public demo runs on Azure Container Apps (scale-to-zero
+# ~ $0 idle), not on this cluster.
+
+subscription_id      = "00000000-0000-0000-0000-000000000000"
+storage_account_name = "booksearchembed<suffix>" # 3-24 lowercase alphanumerics, globally unique
+
+location    = "westus2"
+environment = "dev"
+
+# Smallest practical node pool: one burstable B2s (2 vCPU / 4 GB).
+# Good enough for learning the control plane; not sized for the 4Gi embed pods.
+node_vm_size = "Standard_B2s"
+node_count   = 1
